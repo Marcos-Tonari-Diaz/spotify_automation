@@ -7,11 +7,14 @@ from flask import Flask, redirect, request, session, abort, url_for
 from urllib import parse
 import base64
 
+from common import FileTokenRepository
+from copy_script import Copier
+
 app = Flask("spotify_automation")
 
 ALPHABET = string.ascii_letters + string.digits
 REDIRECT_URI = "{}:{}/{}".format(common.APP_BASE_ADRESS,
-                                 str(common.APP_PORT), 'acessToken')
+                                 str(common.APP_PORT), 'acess-token')
 
 # Helper functions
 
@@ -70,9 +73,11 @@ def request_access_token():
     session["access_token"] = res.json()["access_token"]
     session["refresh_token"] = res.json()["refresh_token"]
 
-    file = open('refresh_token.txt', 'w')
-    file.write(res.json()["refresh_token"])
-    file.close()
+    repo = FileTokenRepository()
+    repo.write_refresh_token_to_file(
+        res.json()["refresh_token"])
+    copier = Copier()
+    copier.copy_discoverweekly_to_archive()
 
 
 if __name__ == "__main__":
