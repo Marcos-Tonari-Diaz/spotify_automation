@@ -87,9 +87,9 @@ class Copier:
 
     def copy_discoverweekly_to_archive(self):
         user_id = self.get_current_user_spotifyid()
-        archive_playlist_id = self.playlist_id_repo.get_object_from_file()
+        archive_playlist_id = self.playlist_id_repo.get_object()
         if (archive_playlist_id == None):
-            archive_playlist_id = self.create_test_archive_playlist(
+            archive_playlist_id = self.create_archive_playlist(
                 "marcos_discover_weekly_archive", user_id)
         self.playlist_id_repo.write_object_to_file(archive_playlist_id)
         track_uris = self.get_discoverweekly_tracks()

@@ -30,31 +30,38 @@ def SPOTIFY_PLAYLISTS_TRACKS_ADDRESS(
 
 
 class FileRepository:
-    _instance = None
+    _instances = {}
 
     @classmethod
     def instance(cls, file_name, stored_object_name):
-        if cls._instance == None:
-            cls._instance = FileRepository(file_name, stored_object_name)
-        return cls._instance
+        if file_name not in cls._instances:
+            cls._instances[file_name] = FileRepository(
+                file_name, stored_object_name)
+        return cls._instances[file_name]
 
     def __init__(self, file_name, stored_object_name):
-        self.access_token_file = file_name
+        self.file_name = file_name
         self.stored_object_name = stored_object_name
-        if os.path.isfile(self.access_token_file):
+        if os.path.isfile(self.file_name):
             self.refresh_token = self.get_object_from_file()
         else:
-            file = open(self.access_token_file, "w")
+            file = open(self.file_name, "w")
             file.close()
 
+    def __str__(self) -> str:
+        return self.file_name
+
     def get_object_from_file(self):
-        with open(self.access_token_file, 'r') as file:
-            token = json.load(file)
-        return token[self.stored_object_name]
+        with open(self.file_name, 'r') as file:
+            try:
+                object = json.loads(file.read())
+            except json.decoder.JSONDecodeError:  # empty file
+                return None
+        return object[self.stored_object_name]
 
     def get_object(self):
         return self.refresh_token
 
     def write_object_to_file(self, token):
-        with open(self.access_token_file, 'w') as file:
+        with open(self.file_name, 'w') as file:
             json.dump({self.stored_object_name: token}, file)
