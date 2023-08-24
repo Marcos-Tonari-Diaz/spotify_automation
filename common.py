@@ -18,6 +18,7 @@ SPOTIFY_ACESS_TOKEN_ADDRESS = "/api/token"
 SPOTIFY_PLAYLISTS_ADDRESS = "/playlists"
 SPOTIFY_MY_PLAYLISTS_ADDRESS = SPOTIFY_CURRENT_USER_ADDRESS + SPOTIFY_PLAYLISTS_ADDRESS
 SPOTIFY_SEARCH_ADDRESS = "/search"
+REQUEST_USER_AUTH_SCOPE = "playlist-read-private playlist-modify-private playlist-modify-public"
 
 
 def SPOTIFY_USER_PLAYLISTS_ADDRESS(
@@ -31,7 +32,11 @@ def SPOTIFY_PLAYLISTS_TRACKS_ADDRESS(
 class FileTokenRepository:
     def __init__(self):
         self.access_token_file = 'refresh_token.txt'
-        self.refresh_token = self.read_refresh_token_from_file()
+        if os.path.isfile(self.access_token_file):
+            self.refresh_token = self.read_refresh_token_from_file()
+        else:
+            file = open(self.access_token_file, "w")
+            file.close()
 
     def read_refresh_token_from_file(self):
         with open(self.access_token_file, 'r') as file:
@@ -42,5 +47,5 @@ class FileTokenRepository:
         return self.refresh_token
 
     def write_refresh_token_to_file(self, token):
-        with open(self.access_token_file, 'x') as file:
+        with open(self.access_token_file, 'w') as file:
             json.dump({"token": token}, file)

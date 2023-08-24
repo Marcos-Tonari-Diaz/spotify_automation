@@ -38,8 +38,6 @@ def make_acess_token_request(auth_code: str):
 
 @app.route("/authorize-user")
 def request_user_auth():
-    SCOPE = "playlist-read-private playlist-modify-private playlist-modify-public"
-
     # store the request state on the client side to protect against XSRF
     state_secret = ''.join(secrets.choice(ALPHABET) for i in range(16))
     session["state_secret"] = state_secret
@@ -48,7 +46,7 @@ def request_user_auth():
 
     req_params = {"client_id": common.SPOTIFY_CLIENT_ID,
                   "response_type": "code",
-                  "scope": SCOPE,
+                  "scope": common.REQUEST_USER_AUTH_SCOPE,
                   "redirect_uri": REDIRECT_URI,
                   "state": state_secret}
 
@@ -70,14 +68,12 @@ def request_access_token():
         return error
 
     res = make_acess_token_request(auth_code)
-    session["access_token"] = res.json()["access_token"]
-    session["refresh_token"] = res.json()["refresh_token"]
-
     repo = FileTokenRepository()
     repo.write_refresh_token_to_file(
         res.json()["refresh_token"])
     copier = Copier()
     copier.copy_discoverweekly_to_archive()
+    return "<p>Completed.</p>"
 
 
 if __name__ == "__main__":
