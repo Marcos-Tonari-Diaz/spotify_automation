@@ -29,23 +29,32 @@ def SPOTIFY_PLAYLISTS_TRACKS_ADDRESS(
     playlist_id): return SPOTIFY_API_BASE_ADRESS + SPOTIFY_PLAYLISTS_ADDRESS + "/" + playlist_id + "/tracks"
 
 
-class FileTokenRepository:
-    def __init__(self):
-        self.access_token_file = 'refresh_token.txt'
+class FileRepository:
+    _instance = None
+
+    @classmethod
+    def instance(cls, file_name, stored_object_name):
+        if cls._instance == None:
+            cls._instance = FileRepository(file_name, stored_object_name)
+        return cls._instance
+
+    def __init__(self, file_name, stored_object_name):
+        self.access_token_file = file_name
+        self.stored_object_name = stored_object_name
         if os.path.isfile(self.access_token_file):
-            self.refresh_token = self.read_refresh_token_from_file()
+            self.refresh_token = self.get_object_from_file()
         else:
             file = open(self.access_token_file, "w")
             file.close()
 
-    def read_refresh_token_from_file(self):
+    def get_object_from_file(self):
         with open(self.access_token_file, 'r') as file:
             token = json.load(file)
-        return token["token"]
+        return token[self.stored_object_name]
 
-    def get_refresh_token(self):
+    def get_object(self):
         return self.refresh_token
 
-    def write_refresh_token_to_file(self, token):
+    def write_object_to_file(self, token):
         with open(self.access_token_file, 'w') as file:
-            json.dump({"token": token}, file)
+            json.dump({self.stored_object_name: token}, file)
