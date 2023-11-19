@@ -67,13 +67,15 @@ def request_access_token():
 
     res = make_acess_token_request(auth_code)
     refresh_token = res.json()["refresh_token"]
-    print("refresh_token: " + refresh_token)
-    repo = RepositoryFactory.create_repository()
-    repo.write_user(user_id, refresh_token, None)
 
     access_token = common.refresh_access_token(refresh_token)
     user_id, display_name = common.get_currentuser_spotifyid_displayname(
         access_token)
+
+    repo = RepositoryFactory.create_repository()
+    user = repo.get_user(user_id)
+    if user == None:
+        repo.write_user(user_id, refresh_token, None)
 
     copier = Copier(user_id, display_name + "_archive_playlist")
     copier.copy_discoverweekly_to_archive()

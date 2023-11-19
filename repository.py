@@ -8,11 +8,10 @@ import logging
 class RepositoryFactory:
     @classmethod
     def create_repository(cls):
-        if cls.environment == None:
-            cls.environment = common.ENVIRONMENT
-        if cls.environment == common.LOCAL_ENVIRONMENT:
+        environment = common.ENVIRONMENT
+        if environment == common.LOCAL_ENVIRONMENT:
             return FileRepository.instance("Users")
-        if cls.environment == common.DEPLOY_ENVIRONMENT:
+        if environment == common.DEPLOY_ENVIRONMENT:
             return DynamoDBRepository.instance()
 
 
@@ -40,9 +39,12 @@ class DynamoDBRepository:
         )
         status = response["ResponseMetadata"]["HTTPStatusCode"]
         if status == 200:
-            user_data = response["Item"]
-            return {common.SPOTIFY_REFRESH_TOKEN_DB_KEY: user_data[common.SPOTIFY_REFRESH_TOKEN_DB_KEY],
-                    common.ARCHIVE_PLAYLIST_ID_DB_KEY: user_data[common.ARCHIVE_PLAYLIST_ID_DB_KEY]}
+            try:
+                user_data = response["Item"]
+                return {common.SPOTIFY_REFRESH_TOKEN_DB_KEY: user_data[common.SPOTIFY_REFRESH_TOKEN_DB_KEY],
+                        common.ARCHIVE_PLAYLIST_ID_DB_KEY: user_data[common.ARCHIVE_PLAYLIST_ID_DB_KEY]}
+            except KeyError:
+                return None
         else:
             self.logger.info(f"Failed to read user. Response: {response}")
             return None

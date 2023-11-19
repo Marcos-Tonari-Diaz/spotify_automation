@@ -58,6 +58,15 @@ class Copier:
         res = requests.post(req_url, headers=req_headers, json=req_body)
         return res.json()["id"]
 
+    def get_playlist(self, spotify_id, playlist_id):
+        req_url = common.SPOTIFY_USER_PLAYLIST_ADDRESS(spotify_id, playlist_id)
+        req_headers = self.create_auth_header()
+        res = requests.get(req_url, headers=req_headers)
+        if res.status_code == 200:
+            return res.json()
+        else:
+            return None
+
     def make_copy_tracks_request(self, track_uris, target_playlist):
         req_url = common.SPOTIFY_PLAYLISTS_TRACKS_ADDRESS(target_playlist)
         req_headers = self.create_auth_header()
@@ -67,10 +76,18 @@ class Copier:
 
     def copy_discoverweekly_to_archive(self):
         archive_playlist_id = self.user_data[common.ARCHIVE_PLAYLIST_ID_DB_KEY]
-        if (archive_playlist_id == None):
+        archive_playlist = None
+        if archive_playlist_id != None:
+            archive_playlist = self.get_playlist(
+                self.user_id, archive_playlist_id)
+        print(archive_playlist)
+        # first run or user might have deleted the playlist
+        if (archive_playlist_id == None or archive_playlist == None):
             archive_playlist_id = self.create_archive_playlist(
-                self.archive_playlist_name, user_id)
-            self.repo.set_archive_playlist_id(archive_playlist_id)
+                self.archive_playlist_name, self.user_id)
+            self.repo.set_archive_playlist_id(
+                self.user_id, archive_playlist_id)
+
         track_uris = self.get_discoverweekly_tracks()
         self.make_copy_tracks_request(track_uris, archive_playlist_id)
 

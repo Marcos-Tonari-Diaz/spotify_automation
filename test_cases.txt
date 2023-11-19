@@ -1,0 +1,4 @@
+Copier: create playlist
+ - first run, no user data -> create OK
+ - we have the user playlist id -> dont create OK
+ - we have the user playlist id, but user deleted the playlist -> create FAILED (even after we deleted the playlist in spotify, it still shows up in the API)
