@@ -2,3 +2,15 @@ spotify_secrets.py
 .vscode
 __pycache__/
 *.json
+bin/
+certifi-2023.11.17.dist-info/
+certifi/
+charset_normalizer-3.3.2.dist-info/
+charset_normalizer/
+idna-3.4.dist-info/
+idna/
+requests-2.31.0.dist-info/
+requests/
+urllib3-1.25.4.dist-info/
+urllib3-2.1.0.dist-info/
+urllib3/
