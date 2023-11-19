@@ -41,4 +41,4 @@ Web app to save Discover weekly playlist songs in a single archive playlist.
       - change timeout to something lik 10s
       - create env variables for SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET and ENVIRONMENT
 - EventBridge Scheduler
-      - create a schedule with this cron config (*,*,?,*,?,WED,*)
+      - create a schedule with this cron config (\*,\*,?,\*,?,WED,\*)
