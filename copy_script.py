@@ -1,16 +1,16 @@
 
-import common
 import requests
 import base64
-from common import FileRepository
+import os
+
+import common
+from repository import RepositoryFactory
 
 
 class Copier:
 
-    def __init__(self):
-        self.token_repo = FileRepository.instance("refresh_token.txt", "token")
-        self.playlist_id_repo = FileRepository.instance(
-            "archive_playlist_id.txt", "playlist_id")
+    def __init__(self, user_id):
+        self.repo = RepositoryFactory.create_repository()
         self.access_token = self.refresh_acess_token()
 
     def refresh_acess_token(self):
@@ -19,7 +19,7 @@ class Copier:
                        "Authorization": "Basic " + base64.b64encode((common.SPOTIFY_CLIENT_ID + ":" + common.SPOTIFY_CLIENT_SECRET).encode("ascii")).decode('ascii')}
 
         body_params = {"grant_type": "refresh_token",
-                       "refresh_token": self.token_repo.get_object()}
+                       "refresh_token": self.get_token()}
 
         response = requests.post(
             req_url, headers=req_headers, data=body_params)
@@ -97,5 +97,6 @@ class Copier:
 
 
 if __name__ == "__main__":
-    copier = Copier()
+    user_id = 
+    copier = Copier(user_id)
     copier.copy_discoverweekly_to_archive()
