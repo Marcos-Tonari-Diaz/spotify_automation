@@ -8,7 +8,7 @@ Web app to save Discover weekly playlist songs in a single archive playlist.
     - Use AWS Lambda to :
         - listen to requests for the first access. A simple backend function can trigger the Sopitfy authorization flow and save the new user's refresh token.
         - run the copying script. After the initial authorization flow, all the backend needs to do is call the Spotify API to copy new songs to the archive.
-    - Use CloudWatch to trigger the Lambda function weekly.
+    - Use EventBridge Scheduler to trigger the Lambda function weekly on Wednesday (Discover Weekly is update on Mondays, so we account for all timezones by updating on Wednesday)
     - Use DynamoDB as the refresh token store: AWS Secrets Manager would be the best way to store user tokens, but it doesn't have a free tier. Dynamo DB has an encryption API, so we can encrypt at rest and in transit.
 
 #### How to deploy
@@ -40,3 +40,5 @@ Web app to save Discover weekly playlist songs in a single archive playlist.
       - change Handler to copy_all_users_playlists.lambda_handler
       - change timeout to something lik 10s
       - create env variables for SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET and ENVIRONMENT
+- EventBridge Scheduler
+      - create a schedule with this cron config (*,*,?,*,?,WED,*)
