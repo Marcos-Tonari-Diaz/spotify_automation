@@ -1,6 +1,5 @@
 
 import requests
-import base64
 import os
 
 import common
@@ -8,50 +7,34 @@ from repository import RepositoryFactory
 
 
 class Copier:
-
-    def __init__(self, user_id):
+    def __init__(self, user_id, archive_playlist_name=None):
+        self.user_id = user_id
+        self.archive_playlist_name = archive_playlist_name
         self.repo = RepositoryFactory.create_repository()
-        self.access_token = self.refresh_acess_token()
+        self.user_data = self.repo.get_user(user_id)
+        self.access_token = common.refresh_access_token(
+            self.user_data[common.SPOTIFY_REFRESH_TOKEN_DB_KEY])
 
-    def refresh_acess_token(self):
-        req_url = common.SPOTIFY_ACCOUNT_BASE_ADDRESS + common.SPOTIFY_ACESS_TOKEN_ADDRESS
-        req_headers = {"content-type": "application/x-www-form-urlencoded",
-                       "Authorization": "Basic " + base64.b64encode((common.SPOTIFY_CLIENT_ID + ":" + common.SPOTIFY_CLIENT_SECRET).encode("ascii")).decode('ascii')}
-
-        body_params = {"grant_type": "refresh_token",
-                       "refresh_token": self.get_token()}
-
-        response = requests.post(
-            req_url, headers=req_headers, data=body_params)
-
-        return response.json()["access_token"]
+    def create_auth_header(self):
+        return {"Authorization": "Bearer " +
+                self.access_token}
 
     def get_discoverweekly_tracks(self):
         playlistid, tracks_url = self.search_playlist_by_name(
             "discover+weekly")
         return self.get_discoverweekly_track_uris(tracks_url)
 
-    def get_current_user_spotifyid(self):
-        req_url = common.SPOTIFY_API_BASE_ADRESS + \
-            common.SPOTIFY_CURRENT_USER_ADDRESS
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
-        res = requests.get(req_url, headers=req_headers)
-        return res.json()["id"]
-
     def get_playlists(self):
         req_url = common.SPOTIFY_API_BASE_ADRESS + \
             common.SPOTIFY_MY_PLAYLISTS_ADDRESS
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
+        req_headers = self.create_auth_header()
         res = requests.get(req_url, headers=req_headers)
         return res.json()
 
     def search_playlist_by_name(self, name):
         req_url = common.SPOTIFY_API_BASE_ADRESS + \
             common.SPOTIFY_SEARCH_ADDRESS
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
+        req_headers = self.create_auth_header()
         req_params = {"q": name,
                       "type": "playlist"}
         res = requests.get(req_url, headers=req_headers, params=req_params)
@@ -61,8 +44,7 @@ class Copier:
         return (playlistid, tracks_link)
 
     def get_discoverweekly_track_uris(self, tracks_url):
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
+        req_headers = self.create_auth_header()
         res = requests.get(
             tracks_url, headers=req_headers)
         tracks = res.json()["items"]
@@ -71,32 +53,29 @@ class Copier:
 
     def create_archive_playlist(self, playlist_name, spotify_id):
         req_url = common.SPOTIFY_USER_PLAYLISTS_ADDRESS(spotify_id)
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
+        req_headers = self.create_auth_header()
         req_body = {"name": playlist_name, "description": "test"}
         res = requests.post(req_url, headers=req_headers, json=req_body)
         return res.json()["id"]
 
     def make_copy_tracks_request(self, track_uris, target_playlist):
         req_url = common.SPOTIFY_PLAYLISTS_TRACKS_ADDRESS(target_playlist)
-        req_headers = {"Authorization": "Bearer " +
-                       self.access_token}
+        req_headers = self.create_auth_header()
         req_body = {"uris": track_uris}
         res = requests.post(req_url, headers=req_headers, json=req_body)
         return res
 
     def copy_discoverweekly_to_archive(self):
-        user_id = self.get_current_user_spotifyid()
-        archive_playlist_id = self.playlist_id_repo.get_object()
+        archive_playlist_id = self.user_data[common.ARCHIVE_PLAYLIST_ID_DB_KEY]
         if (archive_playlist_id == None):
             archive_playlist_id = self.create_archive_playlist(
-                "marcos_discover_weekly_archive", user_id)
-        self.playlist_id_repo.write_object_to_file(archive_playlist_id)
+                self.archive_playlist_name, user_id)
+            self.repo.set_archive_playlist_id(archive_playlist_id)
         track_uris = self.get_discoverweekly_tracks()
         self.make_copy_tracks_request(track_uris, archive_playlist_id)
 
 
 if __name__ == "__main__":
-    user_id = 
+    user_id = "user"
     copier = Copier(user_id)
     copier.copy_discoverweekly_to_archive()

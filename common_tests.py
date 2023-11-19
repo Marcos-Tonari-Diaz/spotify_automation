@@ -1,6 +1,8 @@
 import unittest
-import common
 import os
+
+from common import SPOTIFY_REFRESH_TOKEN_DB_KEY, ARCHIVE_PLAYLIST_ID_DB_KEY
+from repository import FileRepository
 
 
 class TestFileRepository(unittest.TestCase):
@@ -13,7 +15,7 @@ class TestFileRepository(unittest.TestCase):
         self.delete_file_if_present(test_file)
 
         # arange
-        repo = common.FileRepository.instance(test_file)
+        repo = FileRepository.instance(test_file)
 
         # act
         repo.write_user("test_id", "test_token", "test_playlist_id")
@@ -21,14 +23,14 @@ class TestFileRepository(unittest.TestCase):
 
         # assert
         self.assertEqual(
-            data[common.SPOTIFY_REFRESH_TOKEN_DB_KEY], "test_token")
+            data[SPOTIFY_REFRESH_TOKEN_DB_KEY], "test_token")
         self.assertEqual(
-            data[common.ARCHIVE_PLAYLIST_ID_DB_KEY], "test_playlist_id")
+            data[ARCHIVE_PLAYLIST_ID_DB_KEY], "test_playlist_id")
 
     def test_ReadUser_NoFile_ReturnsEmpty(self):
         test_file = "test_repo.json"
         self.delete_file_if_present(test_file)
-        repo = common.FileRepository.instance(test_file)
+        repo = FileRepository.instance(test_file)
 
         data = repo.get_user("test_id")
 

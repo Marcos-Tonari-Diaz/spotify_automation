@@ -1,13 +1,12 @@
 import requests
 import common
-import acess_token
+from repository import RepositoryFactory
 import secrets
 import string
-from flask import Flask, redirect, request, session, abort, url_for
+from flask import Flask, redirect, request, session, abort
 from urllib import parse
 import base64
 
-from common import FileRepository
 from copy_script import Copier
 
 app = Flask("spotify_automation")
@@ -67,10 +66,16 @@ def request_access_token():
         return error
 
     res = make_acess_token_request(auth_code)
-    token_repo = FileRepository.instance("refresh_token.txt", "token")
-    token_repo.write_object_to_file(
-        res.json()["refresh_token"])
-    copier = Copier()
+    refresh_token = res.json()["refresh_token"]
+    print("refresh_token: " + refresh_token)
+    repo = RepositoryFactory.create_repository()
+    repo.write_user(user_id, refresh_token, None)
+
+    access_token = common.refresh_access_token(refresh_token)
+    user_id, display_name = common.get_currentuser_spotifyid_displayname(
+        access_token)
+
+    copier = Copier(user_id, display_name + "_archive_playlist")
     copier.copy_discoverweekly_to_archive()
     return "<p>Completed.</p>"
 
