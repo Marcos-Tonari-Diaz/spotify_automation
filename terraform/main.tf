@@ -55,8 +55,8 @@ resource "aws_s3_object" "spotifyapp-lambda-authorize" {
 }
 
 // function creation
-resource "aws_lambda_function" "spotifyapp-lambda-authorize-authorize" {
-  function_name = "spotifyapp-lambda-authorize-authorize"
+resource "aws_lambda_function" "spotifyapp-lambda-authorize" {
+  function_name = "spotifyapp-lambda-authorize"
 
   s3_bucket = aws_s3_bucket.spotifyapp-lambda-authorize.id
   s3_key    = aws_s3_object.spotifyapp-lambda-authorize.key
@@ -68,13 +68,6 @@ resource "aws_lambda_function" "spotifyapp-lambda-authorize-authorize" {
 
   role = "arn:aws:iam::820978049141:role/Spotify_App_Lambda"
 }
-
-resource "aws_cloudwatch_log_group" "spotify-app" {
-  name = "/aws/lambda/${aws_lambda_function.spotifyapp-lambda-authorize-authorize.function_name}"
-
-  retention_in_days = 30
-}
-
 
 // Refresh Lambda Setup
 // S3 for lambda files
@@ -122,8 +115,8 @@ resource "aws_s3_object" "spotifyapp-lambda-refresh" {
 }
 
 // function creation
-resource "aws_lambda_function" "spotifyapp-lambda-refresh-authorize" {
-  function_name = "spotifyapp-lambda-refresh-authorize"
+resource "aws_lambda_function" "spotifyapp-lambda-refresh" {
+  function_name = "spotifyapp-lambda-refresh"
 
   s3_bucket = aws_s3_bucket.spotifyapp-lambda-refresh.id
   s3_key    = aws_s3_object.spotifyapp-lambda-refresh.key
@@ -140,63 +133,67 @@ resource "aws_lambda_function" "spotifyapp-lambda-refresh-authorize" {
 
 
 // API Gateway
-resource "aws_apigatewayv2_api" "lambda" {
-  name          = "serverless_lambda_gw"
+resource "aws_apigatewayv2_api" "spotifyapp" {
+  name          = "spotifyapp-gateway"
   protocol_type = "HTTP"
 }
 
-resource "aws_apigatewayv2_stage" "lambda" {
-  api_id = aws_apigatewayv2_api.lambda.id
 
-  name        = "serverless_lambda_stage"
+resource "aws_apigatewayv2_stage" "spotifyapp-deploy" {
+  api_id = aws_apigatewayv2_api.spotifyapp.id
+
+  name        = "spotifyapp-deploy"
   auto_deploy = true
-
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gw.arn
-
-    format = jsonencode({
-      requestId               = "$context.requestId"
-      sourceIp                = "$context.identity.sourceIp"
-      requestTime             = "$context.requestTime"
-      protocol                = "$context.protocol"
-      httpMethod              = "$context.httpMethod"
-      resourcePath            = "$context.resourcePath"
-      routeKey                = "$context.routeKey"
-      status                  = "$context.status"
-      responseLength          = "$context.responseLength"
-      integrationErrorMessage = "$context.integrationErrorMessage"
-      }
-    )
-  }
 }
 
+// authorization integration
 // use proxy integration 
-resource "aws_apigatewayv2_integration" "spotifyapp-apigateway" {
-  api_id = aws_apigatewayv2_api.lambda.id
+resource "aws_apigatewayv2_integration" "spotifyapp-integration-auth" {
+  api_id = aws_apigatewayv2_api.spotifyapp.id
 
-  integration_uri    = aws_lambda_function.spotifyapp-lambda-authorize-authorize.invoke_arn
+  integration_uri    = aws_lambda_function.spotifyapp-lambda-authorize.invoke_arn
   integration_type   = "AWS_PROXY"
-  integration_method = "GET"
+  integration_method = "POST"
 }
 
-resource "aws_apigatewayv2_route" "spotifyapp-apigateway" {
-  api_id = aws_apigatewayv2_api.lambda.id
+resource "aws_apigatewayv2_route" "spotifyapp-route-auth" {
+  api_id = aws_apigatewayv2_api.spotifyapp.id
 
-  route_key = "GET /hello"
-  target    = "integrations/${aws_apigatewayv2_integration.spotifyapp-apigateway.id}"
+  route_key = "POST /auth"
+  target    = "integrations/${aws_apigatewayv2_integration.spotifyapp-integration-auth.id}"
 }
 
-resource "aws_cloudwatch_log_group" "api_gw" {
-  name = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
-
-  retention_in_days = 30
-}
-
-resource "aws_lambda_permission" "api_gw" {
+resource "aws_lambda_permission" "api_gw_auth" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.spotifyapp-apigateway.function_name
+  function_name = aws_lambda_function.spotifyapp-lambda-authorize.function_name
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
+  source_arn = "${aws_apigatewayv2_api.spotifyapp.execution_arn}/*/*"
+}
+
+// refresh integration
+// use proxy integration 
+resource "aws_apigatewayv2_integration" "spotifyapp-integration-refresh" {
+  api_id = aws_apigatewayv2_api.spotifyapp.id
+
+  integration_uri    = aws_lambda_function.spotifyapp-lambda-refresh.invoke_arn
+  integration_type   = "AWS_PROXY"
+  integration_method = "POST"
+}
+
+resource "aws_apigatewayv2_route" "spotifyapp-route-refresh" {
+  api_id = aws_apigatewayv2_api.spotifyapp.id
+
+  route_key = "POST /refresh"
+  target    = "integrations/${aws_apigatewayv2_integration.spotifyapp-integration-refresh.id}"
+}
+
+resource "aws_lambda_permission" "api_gw_refresh" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.spotifyapp-lambda-refresh.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_apigatewayv2_api.spotifyapp.execution_arn}/*/*"
 }
