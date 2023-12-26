@@ -1,8 +1,8 @@
 import unittest
 import os
 
-from common import SPOTIFY_REFRESH_TOKEN_DB_KEY, ARCHIVE_PLAYLIST_ID_DB_KEY
-from repository import FileRepository
+from lambda_deploy.common import SPOTIFY_REFRESH_TOKEN_DB_KEY, ARCHIVE_PLAYLIST_ID_DB_KEY
+from lambda_deploy.repository import FileRepository
 
 
 class TestFileRepository(unittest.TestCase):

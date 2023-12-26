@@ -1,5 +1,5 @@
-import copy_script
-from repository import RepositoryFactory
+import lambda_deploy.copy_script as copy_script
+from lambda_deploy.repository import RepositoryFactory
 
 
 def lambda_handler(event, context):

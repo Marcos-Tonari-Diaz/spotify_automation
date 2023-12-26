@@ -27,6 +27,9 @@ SPOTIFY_REFRESH_TOKEN_DB_KEY = "SpotifyAPIRefreshToken"
 ARCHIVE_PLAYLIST_ID_DB_KEY = "ArchivePlaylistId"
 SPOTIFY_USER_ID_DB_KEY = "UserSpotifyId"
 
+REDIRECT_URI = "{}:{}/{}".format(APP_BASE_ADRESS,
+                                 str(APP_PORT), 'acess-token')
+
 
 def SPOTIFY_USER_PLAYLISTS_ADDRESS(
     user_id): return SPOTIFY_API_BASE_ADRESS + SPOTIFY_USERS_ADDRESS + "/" + user_id + SPOTIFY_PLAYLISTS_ADDRESS

@@ -14,3 +14,7 @@ requests/
 urllib3-1.25.4.dist-info/
 urllib3-2.1.0.dist-info/
 urllib3/
+terraform/.terraform
+terraform/.terraform.lock.hcl
+.zip
+*.tfstate*

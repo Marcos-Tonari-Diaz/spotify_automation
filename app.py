@@ -1,13 +1,14 @@
+# to deploy, copy import sources to same directory
 import requests
-import common
-from repository import RepositoryFactory
+import lambda_deploy.common as common
+from lambda_deploy.repository import RepositoryFactory
 import secrets
 import string
 from flask import Flask, redirect, request, session, abort
 from urllib import parse
 import base64
 
-from copy_script import Copier
+from lambda_deploy.copy_script import Copier
 
 app = Flask("spotify_automation")
 
