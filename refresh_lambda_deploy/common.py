@@ -2,9 +2,8 @@ import os
 import requests
 import base64
 
-APP_PORT = 8080
-APP_BASE_ADRESS = "http://localhost"
-APP_HOST = "localhost"
+APP_BASE_ADRESS = "https://85iph01mv4.execute-api.us-east-2.amazonaws.com/spotifyapp-deploy"
+REDIRECT_URI = "{}/{}".format(APP_BASE_ADRESS, 'refresh')
 
 SPOTIFY_API_BASE_ADRESS = "https://api.spotify.com/v1"
 SPOTIFY_ACCOUNT_BASE_ADDRESS = "https://accounts.spotify.com"
@@ -26,9 +25,6 @@ ENVIRONMENT = os.environ[ENVIRONMENT_ENV_VARIABLE]
 SPOTIFY_REFRESH_TOKEN_DB_KEY = "SpotifyAPIRefreshToken"
 ARCHIVE_PLAYLIST_ID_DB_KEY = "ArchivePlaylistId"
 SPOTIFY_USER_ID_DB_KEY = "UserSpotifyId"
-
-REDIRECT_URI = "{}:{}/{}".format(APP_BASE_ADRESS,
-                                 str(APP_PORT), 'acess-token')
 
 
 def SPOTIFY_USER_PLAYLISTS_ADDRESS(

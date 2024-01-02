@@ -16,5 +16,6 @@ urllib3-2.1.0.dist-info/
 urllib3/
 terraform/.terraform
 terraform/.terraform.lock.hcl
-.zip
+*.zip
 *.tfstate*
+terraform/variables.tf

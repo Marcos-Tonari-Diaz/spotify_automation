@@ -62,11 +62,19 @@ resource "aws_lambda_function" "spotifyapp-lambda-authorize" {
   s3_key    = aws_s3_object.spotifyapp-lambda-authorize.key
 
   runtime = "python3.11"
-  handler = "lambda_authorize_user.handler"
+  handler = "lambda_authorize_user.lambda_handler"
 
   source_code_hash = data.archive_file.spotifyapp-lambda-authorize.output_base64sha256
 
   role = "arn:aws:iam::820978049141:role/Spotify_App_Lambda"
+
+  environment {
+    variables = {
+      ENVIRONMENT           = "DEPLOY"
+      SPOTIFY_CLIENT_ID     = var.spotify_client_id
+      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
+    }
+  }
 }
 
 // Refresh Lambda Setup
@@ -122,11 +130,19 @@ resource "aws_lambda_function" "spotifyapp-lambda-refresh" {
   s3_key    = aws_s3_object.spotifyapp-lambda-refresh.key
 
   runtime = "python3.11"
-  handler = "lambda_authorize_user.handler"
+  handler = "lambda_refresh_access_token.lambda_handler"
 
   source_code_hash = data.archive_file.spotifyapp-lambda-refresh.output_base64sha256
 
   role = "arn:aws:iam::820978049141:role/Spotify_App_Lambda"
+
+  environment {
+    variables = {
+      ENVIRONMENT           = "DEPLOY"
+      SPOTIFY_CLIENT_ID     = var.spotify_client_id
+      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
+    }
+  }
 }
 
 
@@ -173,7 +189,6 @@ resource "aws_lambda_permission" "api_gw_auth" {
 }
 
 // refresh integration
-// use proxy integration 
 resource "aws_apigatewayv2_integration" "spotifyapp-integration-refresh" {
   api_id = aws_apigatewayv2_api.spotifyapp.id
 
