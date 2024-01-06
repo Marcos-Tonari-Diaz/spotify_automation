@@ -19,3 +19,5 @@ terraform/.terraform.lock.hcl
 *.zip
 *.tfstate*
 terraform/variables.tf
+authorize_lambda_deploy/idna-3.6.dist-info/*
+refresh_lambda_deploy/idna-3.6.dist-info/*

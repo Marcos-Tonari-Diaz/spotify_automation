@@ -314,16 +314,21 @@ locals {
 }
 
 // Copy files to bucket
-resource "aws_s3_object" "static_files" {
-  for_each = fileset(local.static_filespath, "**")
-  bucket   = aws_s3_bucket.spotifyapp_static.id
-  key      = each.key
-  source   = "${local.static_filespath}/${each.value}"
-  etag     = filemd5("${local.static_filespath}/${each.value}")
+resource "aws_s3_object" "index" {
+  bucket       = aws_s3_bucket.spotifyapp_static.id
+  key          = "index.html"
+  source       = "${local.static_filespath}/index.html"
+  etag         = filemd5("${local.static_filespath}/index.html")
+  content_type = "text/html"
 }
 
-
-
+resource "aws_s3_object" "htmx" {
+  bucket       = aws_s3_bucket.spotifyapp_static.id
+  key          = "htmx.min.js"
+  source       = "${local.static_filespath}/htmx.min.js"
+  etag         = filemd5("${local.static_filespath}/htmx.min.js")
+  content_type = "application/javascript"
+}
 
 # s3 static website url
 
