@@ -33,6 +33,7 @@ def start_copy(access_token, refresh_token):
 
     copier = Copier(user_id, display_name + "_archive_playlist")
     copier.copy_discoverweekly_to_archive()
+    return {"done": "done"}
 
 
 def request_access_token(auth_code, error):
@@ -50,7 +51,7 @@ def request_access_token(auth_code, error):
 
 def lambda_handler(event, context):
     # get the auth code from the spotify auth server
-    auth_code = event.code
-    error = event.error
+    auth_code = event['queryStringParameters']['code']
+    error = None
     access_token, refresh_token = request_access_token(auth_code, error)
     return start_copy(access_token, refresh_token)

@@ -160,6 +160,23 @@ resource "aws_apigatewayv2_stage" "spotifyapp-deploy" {
 
   name        = "spotifyapp-deploy"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = "arn:aws:logs:us-east-2:820978049141:log-group:apotifyapp-apigw"
+    format = jsonencode(
+      {
+        httpMethod     = "$context.httpMethod"
+        ip             = "$context.identity.sourceIp"
+        protocol       = "$context.protocol"
+        requestId      = "$context.requestId"
+        requestTime    = "$context.requestTime"
+        responseLength = "$context.responseLength"
+        routeKey       = "$context.routeKey"
+        status         = "$context.status"
+      }
+    )
+  }
+
 }
 
 // authorization integration
@@ -175,7 +192,7 @@ resource "aws_apigatewayv2_integration" "spotifyapp-integration-auth" {
 resource "aws_apigatewayv2_route" "spotifyapp-route-auth" {
   api_id = aws_apigatewayv2_api.spotifyapp.id
 
-  route_key = "POST /auth"
+  route_key = "GET /auth"
   target    = "integrations/${aws_apigatewayv2_integration.spotifyapp-integration-auth.id}"
 }
 
@@ -200,7 +217,7 @@ resource "aws_apigatewayv2_integration" "spotifyapp-integration-refresh" {
 resource "aws_apigatewayv2_route" "spotifyapp-route-refresh" {
   api_id = aws_apigatewayv2_api.spotifyapp.id
 
-  route_key = "POST /refresh"
+  route_key = "GET /refresh"
   target    = "integrations/${aws_apigatewayv2_integration.spotifyapp-integration-refresh.id}"
 }
 
@@ -211,4 +228,105 @@ resource "aws_lambda_permission" "api_gw_refresh" {
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.spotifyapp.execution_arn}/*/*"
+}
+
+// Static S3 bucket 
+
+variable "domain" {
+  type    = string
+  default = "www.weeklyfy.xyz"
+}
+
+resource "aws_s3_bucket" "spotifyapp_static" {
+  bucket = var.domain # give a unique bucket name
+  tags = {
+    Name = var.domain
+  }
+}
+
+resource "aws_s3_bucket_website_configuration" "spotifyapp_static" {
+  bucket = aws_s3_bucket.spotifyapp_static.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
+  }
+}
+
+# S3 bucket ACL access
+
+resource "aws_s3_bucket_ownership_controls" "spotifyapp_static" {
+  bucket = aws_s3_bucket.spotifyapp_static.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "spotifyapp_static" {
+  bucket = aws_s3_bucket.spotifyapp_static.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "spotifyapp_static" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.spotifyapp_static,
+    aws_s3_bucket_public_access_block.spotifyapp_static,
+  ]
+
+  bucket = aws_s3_bucket.spotifyapp_static.id
+  acl    = "public-read"
+}
+
+# Enable pulbic bucket getObjects policy
+resource "aws_s3_bucket_policy" "bucket-policy" {
+  bucket = aws_s3_bucket.spotifyapp_static.id
+
+  policy = <<POLICY
+{
+  "Id": "Policy",
+  "Statement": [
+    {
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${aws_s3_bucket.spotifyapp_static.bucket}/*",
+      "Principal": {
+        "AWS": [
+          "*"
+        ]
+      }
+    }
+  ]
+}
+POLICY
+}
+
+locals {
+  static_filespath = "../static"
+}
+
+// Copy files to bucket
+resource "aws_s3_object" "static_files" {
+  for_each = fileset(local.static_filespath, "**")
+  bucket   = aws_s3_bucket.spotifyapp_static.id
+  key      = each.key
+  source   = "${local.static_filespath}/${each.value}"
+  etag     = filemd5("${local.static_filespath}/${each.value}")
+}
+
+
+
+
+# s3 static website url
+
+output "website_url" {
+  value = "http://${aws_s3_bucket.spotifyapp_static.bucket}.s3-website.${var.aws_region}.amazonaws.com"
 }
