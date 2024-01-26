@@ -2,7 +2,7 @@ import os
 import requests
 import base64
 
-APP_BASE_ADRESS = "https://85iph01mv4.execute-api.us-east-2.amazonaws.com/spotifyapp-deploy"
+APP_BASE_ADRESS = "https://www.weeklyfy.xyz/api"
 REDIRECT_URI = "{}/{}".format(APP_BASE_ADRESS, 'refresh')
 
 SPOTIFY_API_BASE_ADRESS = "https://api.spotify.com/v1"

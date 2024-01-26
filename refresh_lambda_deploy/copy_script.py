@@ -1,19 +1,24 @@
-
 import requests
-import os
-
 import common
 from repository import RepositoryFactory
+import logging
 
 
 class Copier:
     def __init__(self, user_id, archive_playlist_name=None):
+        logger = logging.getLogger()
+        logger.setLevel("INFO")
+
         self.user_id = user_id
         self.archive_playlist_name = archive_playlist_name
         self.repo = RepositoryFactory.create_repository()
         self.user_data = self.repo.get_user(user_id)
-        self.access_token = common.refresh_access_token(
+        res = common.refresh_access_token(
             self.user_data[common.SPOTIFY_REFRESH_TOKEN_DB_KEY])
+        self.access_token = res.json().get("access_token")
+        if self.access_token == None:
+            raise common.BadResponseException(common.make_http_response(
+                "refresh_token not in response: "+str(res), 400), res)
 
     def create_auth_header(self):
         return {"Authorization": "Bearer " +
@@ -75,12 +80,12 @@ class Copier:
         return res
 
     def copy_discoverweekly_to_archive(self):
+        logging.info("finding/creating archive playlist")
         archive_playlist_id = self.user_data[common.ARCHIVE_PLAYLIST_ID_DB_KEY]
         archive_playlist = None
         if archive_playlist_id != None:
             archive_playlist = self.get_playlist(
                 self.user_id, archive_playlist_id)
-        print(archive_playlist)
         # first run or user might have deleted the playlist
         if (archive_playlist_id == None or archive_playlist == None):
             archive_playlist_id = self.create_archive_playlist(
@@ -88,7 +93,9 @@ class Copier:
             self.repo.set_archive_playlist_id(
                 self.user_id, archive_playlist_id)
 
+        logging.info("getting tracks from discover weekly")
         track_uris = self.get_discoverweekly_tracks()
+        logging.info("copying tracks")
         self.make_copy_tracks_request(track_uris, archive_playlist_id)
 
 

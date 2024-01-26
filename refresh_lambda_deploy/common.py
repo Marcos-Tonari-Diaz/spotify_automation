@@ -2,7 +2,7 @@ import os
 import requests
 import base64
 
-APP_BASE_ADRESS = "https://85iph01mv4.execute-api.us-east-2.amazonaws.com/spotifyapp-deploy"
+APP_BASE_ADRESS = "https://www.weeklyfy.xyz/api"
 REDIRECT_URI = "{}/{}".format(APP_BASE_ADRESS, 'refresh')
 
 SPOTIFY_API_BASE_ADRESS = "https://api.spotify.com/v1"
@@ -58,5 +58,22 @@ def refresh_access_token(refresh_token):
 
     response = requests.post(
         req_url, headers=req_headers, data=body_params)
+    return response
 
-    return response.json()["access_token"]
+
+class BadResponseException(Exception):
+    def __init__(self, message, response):
+        super().__init__(message)
+        self.response = response
+
+
+def make_http_response(body, status_code, is_html=False):
+    content_type = "application/json"
+    if is_html:
+        content_type = "text/html"
+
+    return {
+        "statusCode": status_code,
+        "Content-Type": content_type,
+        "body": body
+    }

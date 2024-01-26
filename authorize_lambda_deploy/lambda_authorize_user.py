@@ -2,15 +2,15 @@ import common
 from urllib import parse
 import json
 
-
 # Helpers
 
 
 def redirect_response(redirect_url):
-    response = dict()
-    response["statusCode"] = 302
-    response["body"] = json.dumps(dict())  # empty
-    response["headers"] = {"Location": redirect_url}
+    response = {
+        "statusCode": 302,
+        "body": json.dumps(dict()),  # empty
+        "headers": {"Location": redirect_url}
+    }
     return response
 
 

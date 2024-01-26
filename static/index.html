@@ -1,4 +1,12 @@
-<script src="https://s3.us-east-2.amazonaws.com/www.weeklyfy.xyz/htmx.min.js"></script>
-<button hx-get="www.weeklyfy.xyz/auth" hx-trigger="click" hx-target="#parent-div" hx-swap="outerHTML">
-    Start Archive Playlist
-</button>
+<head>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body>
+    <a
+        href="https://accounts.spotify.com/authorize?client_id=fa4954c77aad4069b8cb0833a79f5eb6&response_type=code&scope=playlist-read-private playlist-modify-private playlist-modify-public&redirect_uri=https://www.weeklyfy.xyz/api/refresh&state=dummy_state">
+        <button>
+            Start Archive Playlist
+        </button>
+    </a>
+</body>

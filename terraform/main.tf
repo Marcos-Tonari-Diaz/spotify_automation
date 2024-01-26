@@ -68,6 +68,8 @@ resource "aws_lambda_function" "spotifyapp-lambda-authorize" {
 
   role = "arn:aws:iam::820978049141:role/Spotify_App_Lambda"
 
+  timeout = 30
+
   environment {
     variables = {
       ENVIRONMENT           = "DEPLOY"
@@ -135,6 +137,8 @@ resource "aws_lambda_function" "spotifyapp-lambda-refresh" {
   source_code_hash = data.archive_file.spotifyapp-lambda-refresh.output_base64sha256
 
   role = "arn:aws:iam::820978049141:role/Spotify_App_Lambda"
+
+  timeout = 30
 
   environment {
     variables = {
@@ -328,6 +332,14 @@ resource "aws_s3_object" "htmx" {
   source       = "${local.static_filespath}/htmx.min.js"
   etag         = filemd5("${local.static_filespath}/htmx.min.js")
   content_type = "application/javascript"
+}
+
+resource "aws_s3_object" "favicon" {
+  bucket       = aws_s3_bucket.spotifyapp_static.id
+  key          = "favicon.ico"
+  source       = "${local.static_filespath}/favicon.ico"
+  etag         = filemd5("${local.static_filespath}/favicon.ico")
+  content_type = "image/x-icon"
 }
 
 # s3 static website url
