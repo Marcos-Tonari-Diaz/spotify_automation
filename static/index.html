@@ -1,21 +1,46 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <head>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 
 <body>
-    <a
+    <!-- <a
         href="https://accounts.spotify.com/authorize?client_id=fa4954c77aad4069b8cb0833a79f5eb6&response_type=code&scope=playlist-read-private playlist-modify-private playlist-modify-public&redirect_uri=https://www.weeklyfy.xyz/api/refresh&state=dummy_state">
         <button>
             Start Archive Playlist
         </button>
-    </a>
+    </a> -->
+    <div class="title">WEEKLYFY</div>
     <div class="archive-bg">
-        <div class="file"></div>
-        <div class="file-tag"></div>
-        <div class="file-sticker">
-            <p class="sticker-text">Discover Weekly</p>
+        <div class="archive-drawer">
+            <div class="file">
+                <span class="sticker">PLAYLIST</span>
+            </div>
+            <div class="call-p">
+                <span class="call">ARCHIVE YOUR </span>
+                <span class="call pink">DISCOVER WEEKLY</span>
+                <span class="call">PLAYLIST</span>
+            </div>
+            <div class="playlist-drawing">
+                <div class="playlist playlist1"></div>
+                <div class="playlist playlist2"></div>
+                <div class="playlist playlist3"></div>
+                <div class="playlist playlist4"></div>
+            </div>
+            <div class="archive-handle">
+                <div class="circle-left"></div>
+                <div class="circle-right"></div>
+                <div class="handle">
+                    <a
+                        href="https://accounts.spotify.com/authorize?client_id=fa4954c77aad4069b8cb0833a79f5eb6&response_type=code&scope=playlist-read-private playlist-modify-private playlist-modify-public&redirect_uri=https://www.weeklyfy.xyz/api/refresh&state=dummy_state">
+                        <button>
+                            Start Archive Playlist
+                        </button>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="archive-drawer"></div>
     </div>
 </body>
